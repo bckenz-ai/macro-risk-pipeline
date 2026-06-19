@@ -1,0 +1,29 @@
+name: Run Macro Risk ETL Pipeline
+
+on:
+  schedule:
+    # Runs every day at 22:00 UTC. Cron syntax is in UTC.
+    - cron: "0 22 * * *"
+  workflow_dispatch: {}  # Trigger a run manually from the Actions tab, useful for testing.
+
+jobs:
+  run-pipeline:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+
+      - name: Run pipeline
+        env:
+          FRED_API_KEY: ${{ secrets.FRED_API_KEY }}
+          DATABASE_URL: ${{ secrets.DATABASE_URL }}
+        run: python src/pipeline.py
