@@ -5,7 +5,7 @@ credit risk indicators from the Federal Reserve Economic Data (FRED) API,
 validates and cleans the data, and loads it into a cloud Postgres database
 on a daily schedule with zero manual intervention.
 
-**Live dashboard:** [Tableau Public link here]
+**Live dashboard:** 
 **Daily run history:** see the Actions tab of this repository
 
 ## What this project tracks
