@@ -6,6 +6,7 @@ validates and cleans the data, and loads it into a cloud Postgres database
 on a daily schedule with zero manual intervention.
 
 **Live dashboard:** https://public.tableau.com/views/macro-risk-dashboard/Dashboard1?:language=en-GB&publish=yes&:sid=&:redirect=auth&:display_count=n&:origin=viz_share_link
+
 **Daily run history:** see the Actions tab of this repository
 
 ## What this project tracks
