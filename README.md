@@ -12,7 +12,7 @@ on a daily schedule with zero manual intervention.
 
 | Metric | FRED ID | Frequency | Why it matters |
 |---|---|---|---|
-| 3-Month SOFR | SOFR3M | Daily | Benchmark wholesale funding rate, a leading indicator for shifting interest rate conditions |
+| 3-Month SOFR | SOFR90DAYAVG | Daily | Benchmark wholesale funding rate, a leading indicator for shifting interest rate conditions |
 | Consumer Price Index | CPIAUCSL | Monthly | Tracks inflation pressure on consumer purchasing power |
 | Real GDP | GDPC1 | Quarterly | Tracks broader economic growth or recession risk |
 | Credit Card Delinquency Rate | DRCCLACBS | Quarterly | Leading indicator for retail credit risk |
