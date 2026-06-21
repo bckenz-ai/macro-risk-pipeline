@@ -38,18 +38,24 @@ GitHub Actions (daily cron trigger)
 Python: extract -> clean -> validate -> upsert
    |
    v
-Postgres (Supabase / Neon, free tier)
+Postgres (Supabase, free tier)
    |
    v
 SQL views (vw_systemic_financial_strain, vw_systemic_strain_zscore)
    |
-   v
+   v (manual export and refresh, see note below)
 Tableau Public dashboard
 ```
 
 No servers to maintain. No cloud bill to monitor. The entire orchestration
 layer is GitHub Actions, and the entire storage layer is a managed
 serverless Postgres instance on its free tier.
+
+The pipeline above is fully automatic from FRED through the database, with
+zero manual steps. The Tableau Public dashboard is the one exception.
+Tableau Public's free tier does not support a live connection to
+PostgreSQL, so the dashboard is a manually refreshed snapshot rather than
+a live view. The underlying data stays current every day regardless.
 
 ## Tech stack
 
