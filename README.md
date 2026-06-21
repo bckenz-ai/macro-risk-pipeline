@@ -21,11 +21,8 @@ on a daily schedule with zero manual intervention.
 
 ## Why this exists
 
-Most student portfolios are full of one-off notebooks where a CSV was
-downloaded once and analyzed manually. This project is built to run on its
-own. It fetches new data every day, handles network failures without
-crashing, and never writes duplicate records even if it runs twice in a
-row. That is the difference between a script and a pipeline.
+This project is built to run on its own. It fetches new data every day, handles network failures without
+crashing, and never writes duplicate records even if it runs twice in a row.
 
 ## Architecture
 
