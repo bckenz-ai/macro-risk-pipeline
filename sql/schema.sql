@@ -44,16 +44,78 @@ INNER JOIN prime_rates pr ON cc.observation_date = pr.observation_date;
 -- View 2: Z-Score Strain Index (stretch goal, optional)
 -- ============================================================
 CREATE OR REPLACE VIEW vw_systemic_strain_zscore AS
-WITH scored AS (
+WITH
+-- Step 1: Build the daily backbone using only the daily-reporting series.
+daily_dates AS (
+    SELECT DISTINCT observation_date
+    FROM fact_macro_risk_indicators
+    WHERE metric_id IN ('MPRIME', 'SOFR90DAYAVG')
+),
+
+-- Step 2: Place the raw quarterly delinquency values onto the daily spine.
+-- Days when delinquency did not report get NULL here.
+delinq_on_daily AS (
     SELECT
-        metric_id,
+        d.observation_date,
+        f.metric_value
+    FROM daily_dates d
+    LEFT JOIN fact_macro_risk_indicators f
+        ON  f.observation_date = d.observation_date
+        AND f.metric_id = 'DRCCLACBS'
+),
+
+-- Step 3: Forward-fill using the group-counter trick.
+-- COUNT(metric_value) ignores NULLs by default, so this counter
+-- only advances when a real quarterly value is present.
+-- Every NULL day between two real readings gets the same counter
+-- as the most recent real reading, letting FIRST_VALUE carry it forward.
+delinq_grouped AS (
+    SELECT
         observation_date,
         metric_value,
-        (metric_value - AVG(metric_value) OVER (PARTITION BY metric_id))
-            / STDDEV(metric_value) OVER (PARTITION BY metric_id) AS z_score
+        COUNT(metric_value) OVER (ORDER BY observation_date) AS fill_grp
+    FROM delinq_on_daily
+),
+
+-- Step 4: Materialise the filled delinquency series.
+-- Dates before 1991 (where fill_grp = 0 and FIRST_VALUE returns NULL)
+-- are excluded, they will simply not contribute to the combined index.
+delinq_filled AS (
+    SELECT
+        observation_date,
+        FIRST_VALUE(metric_value) OVER (
+            PARTITION BY fill_grp
+            ORDER BY observation_date
+        ) AS delinquency_value
+    FROM delinq_grouped
+),
+
+-- Step 5: Combine the forward-filled delinquency values with the two
+-- daily series into one unified table, then compute Z-scores.
+-- By computing Z-scores here, after the fill, the delinquency mean and
+-- standard deviation are calculated across its filled daily series,
+-- not just its four raw quarterly points per year.
+combined AS (
+    SELECT observation_date, 'DRCCLACBS' AS metric_id, delinquency_value AS metric_value
+    FROM delinq_filled
+    WHERE delinquency_value IS NOT NULL
+
+    UNION ALL
+
+    SELECT observation_date, metric_id, metric_value
     FROM fact_macro_risk_indicators
-    WHERE metric_id IN ('DRCCLACBS', 'MPRIME', 'SOFR90DAYAVG')
+    WHERE metric_id IN ('MPRIME', 'SOFR90DAYAVG')
+),
+
+scored AS (
+    SELECT
+        observation_date,
+        metric_id,
+        (metric_value - AVG(metric_value) OVER (PARTITION BY metric_id))
+            / NULLIF(STDDEV(metric_value) OVER (PARTITION BY metric_id), 0) AS z_score
+    FROM combined
 )
+
 SELECT
     observation_date,
     SUM(z_score) AS combined_strain_zscore
