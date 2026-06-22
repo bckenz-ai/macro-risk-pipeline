@@ -108,3 +108,10 @@ become zero, which would corrupt the historical average.
 The pipeline uses `ON CONFLICT (metric_id, observation_date) DO UPDATE`
 when writing to Postgres, so running it any number of times for the same
 day always results in one row per metric per date, never duplicates.
+
+The combined financial strain index in `vw_systemic_strain_zscore` uses
+a forward-fill pattern to align the quarterly credit card delinquency
+rate with daily-reporting indicators before computing Z-scores. This
+ensures all three input series contribute to every date in the index,
+rather than the quarterly metric appearing only on its four reporting
+days per year.
